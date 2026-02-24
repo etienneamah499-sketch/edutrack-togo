@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduTrack Togo - Plateforme d'études BAC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #006400 0%, #FFD700 50%, #CE1126 100%);
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .togo-flag {
+            background: linear-gradient(90deg, #006400 33%, #FFD700 33%, #FFD700 66%, #CE1126 66%);
+        }
+        
+        .subject-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .subject-card:hover {
+            transform: scale(1.02);
+        }
+        
+        .quiz-option {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: #e0e7ff;
+            transform: translateX(5px);
+        }
+        
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin: 8px 0;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .chat-sent {
+            background: linear-gradient(135deg, #006400 0%, #228B22 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-received {
+            background: #f3f4f6;
+            color: #1f2937;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .nav-item.active {
+            background: linear-gradient(135deg, #006400 0%, #228B22 100%);
+            color: white;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .series-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .badge-a { background: #dbeafe; color: #1e40af; }
+        .badge-c { background: #fef3c7; color: #92400e; }
+        .badge-d { background: #d1fae5; color: #065f46; }
+        .badge-ti { background: #fce7f3; color: #be185d; }
+        
+        .category-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-langues { background: #fee2e2; color: #dc2626; }
+        .badge-sciences { background: #dbeafe; color: #2563eb; }
+        .badge-litterature { background: #f3e8ff; color: #9333ea; }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Navigation -->
+    <nav class="glass-effect fixed w-full z-50 top-0 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg" style="background: linear-gradient(135deg, #006400 0%, #FFD700 50%, #CE1126 100%);">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <span class="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-green-700 to-yellow-600 block leading-tight">
+                            EduTrack Togo
+                        </span>
+                        <span class="text-xs text-gray-500">BAC A-C-D-TI</span>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex space-x-1">
+                    <button onclick="showSection('dashboard')" class="nav-item active px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2" id="nav-dashboard">
+                        <i class="fas fa-home"></i><span>Accueil</span>
+                    </button>
+                    <button onclick="showSection('langues')" class="nav-item px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-green-100" id="nav-langues">
+                        <i class="fas fa-language"></i><span>Langues</span>
+                    </button>
+                    <button onclick="showSection('sciences')" class="nav-item px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-blue-100" id="nav-sciences">
+                        <i class="fas fa-flask"></i><span>Sciences</span>
+                    </button>
+                    <button onclick="showSection('litterature')" class="nav-item px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-purple-100" id="nav-litterature">
+                        <i class="fas fa-book"></i><span>Littéraires</span>
+                    </button>
+                    <button onclick="showSection('community')" class="nav-item px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-yellow-100" id="nav-community">
+                        <i class="fas fa-users"></i><span>Communauté</span>
+                    </button>
+                    <button onclick="showSection('progress')" class="nav-item px-4 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 hover:bg-red-100" id="nav-progress">
+                        <i class="fas fa-chart-line"></i><span>Progression</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm font-semibold" id="user-name">Kokou A.</div>
+                        <div class="text-xs text-gray-500">Terminale D</div>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-yellow-500 flex items-center justify-center text-white font-bold cursor-pointer hover:ring-4 ring-green-200 transition-all">
+                        K
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="fade-in space-y-6">
+            <div class="text-center py-10">
+                <div class="inline-block mb-4 px-4 py-2 rounded-full bg-white/20 backdrop-blur text-white text-sm font-semibold border border-white/30">
+                    🇹🇬 Système Éducatif Togolais
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 font-['Playfair_Display'] drop-shadow-lg">
+                    EduTrack Togo
+                </h1>
+                <p class="text-xl text-white/90 max-w-2xl mx-auto">
+                    Plateforme d'études pour les séries A, C, D et TI du baccalauréat togolais. Préparez votre BAC avec des quiz interactifs et suivez votre progression.
+                </p>
+                
+                <!-- Series Selection -->
+                <div class="flex flex-wrap justify-center gap-3 mt-6">
+                    <button onclick="changeSeries('A')" class="px-6 py-2 rounded-full bg-blue-100 text-blue-800 font-semibold hover:bg-blue-200 transition-all series-btn" data-series="A">
+                        Série A (Arts)
+                    </button>
+                    <button onclick="changeSeries('C')" class="px-6 py-2 rounded-full bg-yellow-100 text-yellow-800 font-semibold hover:bg-yellow-200 transition-all series-btn" data-series="C">
+                        Série C (Maths)
+                    </button>
+                    <button onclick="changeSeries('D')" class="px-6 py-2 rounded-full bg-green-100 text-green-800 font-semibold hover:bg-green-200 transition-all series-btn ring-2 ring-green-400" data-series="D">
+                        Série D (Sciences)
+                    </button>
+                    <button onclick="changeSeries('TI')" class="px-6 py-2 rounded-full bg-pink-100 text-pink-800 font-semibold hover:bg-pink-200 transition-all series-btn" data-series="TI">
+                        Série TI (Techniques)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass-effect rounded-2xl p-6 card-hover border-t-4 border-green-600">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Cours complétés</p>
+                            <p class="text-3xl font-bold text-green-700" id="stats-courses">12</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                            <i class="fas fa-book-open text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 card-hover border-t-4 border-yellow-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Quiz réussis</p>
+                            <p class="text-3xl font-bold text-yellow-600" id="stats-quizzes">8</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 card-hover border-t-4 border-blue-600">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Moyenne générale</p>
+                            <p class="text-3xl font-bold text-blue-700" id="stats-score">14.5</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                            <i class="fas fa-percentage text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-effect rounded-2xl p-6 card-hover border-t-4 border-red-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Jours consécutifs</p>
+                            <p class="text-3xl font-bold text-red-600" id="stats-streak">5</p>
+                        </div>
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                            <i class="fas fa-fire text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div onclick="showSection('langues')" class="glass-effect rounded-2xl p-8 card-hover cursor-pointer border-l-4 border-red-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-red-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                    <div class="flex items-center justify-between mb-4 relative z-10">
+                        <i class="fas fa-language text-4xl text-red-600"></i>
+                        <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">3 matières</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 relative z-10">Langues Vivantes</h3>
+                    <p class="text-gray-600 text-sm mb-4 relative z-10">Anglais, Allemand, Espagnol</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 relative z-10">
+                        <div class="bg-red-500 h-2 rounded-full" style="width: 75%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 relative z-10">75% complété</p>
+                </div>
+
+                <div onclick="showSection('sciences')" class="glass-effect rounded-2xl p-8 card-hover cursor-pointer border-l-4 border-blue-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                    <div class="flex items-center justify-between mb-4 relative z-10">
+                        <i class="fas fa-flask text-4xl text-blue-600"></i>
+                        <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">4 matières</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 relative z-10">Sciences</h3>
+                    <p class="text-gray-600 text-sm mb-4 relative z-10">SVT, Physique-Chimie, Maths, Technologie</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 relative z-10">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: 60%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 relative z-10">60% complété</p>
+                </div>
+
+                <div onclick="showSection('litterature')" class="glass-effect rounded-2xl p-8 card-hover cursor-pointer border-l-4 border-purple-500 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-100 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                    <div class="flex items-center justify-between mb-4 relative z-10">
+                        <i class="fas fa-book text-4xl text-purple-600"></i>
+                        <span class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-sm font-semibold">4 matières</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2 relative z-10">Littérature & SH</h3>
+                    <p class="text-gray-600 text-sm mb-4 relative z-10">Français, Philosophie, HG, ECM</p>
+                    <div class="w-full bg-gray-200 rounded-full h-2 relative z-10">
+                        <div class="bg-purple-500 h-2 rounded-full" style="width: 80%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 relative z-10">80% complété</p>
+                </div>
+            </div>
+
+            <!-- BAC Info -->
+            <div class="glass-effect rounded-2xl p-6 mt-6 border-l-4 border-yellow-500">
+                <div class="flex items-start space-x-4">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 flex-shrink-0">
+                        <i class="fas fa-info-circle text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-2">Préparation au BAC Togolais</h3>
+                        <p class="text-gray-600 text-sm mb-3">
+                            Le baccalauréat togolais comporte trois séries principales : <strong>Série A</strong> (Arts, Lettres, Langues), 
+                            <strong>Série C</strong> (Mathématiques), <strong>Série D</strong> (Sciences) et <strong>Série TI</strong> (Techniques Industrielles).
+                            Cette plateforme couvre toutes les matières selon les programmes officiels de l'éducation togolaise.
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="series-badge badge-a">Série A</span>
+                            <span class="series-badge badge-c">Série C</span>
+                            <span class="series-badge badge-d">Série D</span>
+                            <span class="series-badge badge-ti">Série TI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Langues Section -->
+        <section id="langues" class="hidden fade-in space-y-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white flex items-center drop-shadow-md">
+                    <i class="fas fa-language mr-3"></i>
+                    Espace Langues Vivantes
+                </h2>
+                <button onclick="showSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all backdrop-blur">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Anglais (Obligatoire toutes séries) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-red-500">
+                    <div class="h-32 bg-gradient-to-r from-red-500 to-pink-600 flex items-center justify-center relative">
+                        <i class="fas fa-flag-usa text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Toutes séries</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Anglais LV1</h3>
+                        <p class="text-gray-600 text-sm mb-4">Grammar, Vocabulary, Comprehension écrite et orale</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-red-500 mr-2"></i>Compréhension écrite</li>
+                            <li><i class="fas fa-check text-red-500 mr-2"></i>Expression écrite</li>
+                            <li><i class="fas fa-check text-red-500 mr-2"></i>Grammar in context</li>
+                        </ul>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span>Progression</span>
+                                <span class="font-semibold">75%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        <button onclick="openCourse('anglais')" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Commencer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Allemand (Optionnel) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-yellow-500">
+                    <div class="h-32 bg-gradient-to-r from-yellow-500 to-orange-600 flex items-center justify-center relative">
+                        <i class="fas fa-beer text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Optionnel</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Allemand LV2</h3>
+                        <p class="text-gray-600 text-sm mb-4">Deutsch als Fremdsprache - Niveau BAC</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-yellow-500 mr-2"></i>Grammatik (Die Fälle)</li>
+                            <li><i class="fas fa-check text-yellow-500 mr-2"></i>Wortschatz</li>
+                            <li><i class="fas fa-check text-yellow-500 mr-2"></i>Übersetzung</li>
+                        </ul>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span>Progression</span>
+                                <span class="font-semibold">45%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-yellow-500 h-2 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        <button onclick="openCourse('allemand')" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Commencer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Espagnol (Optionnel) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-orange-500">
+                    <div class="h-32 bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center relative">
+                        <i class="fas fa-guitar text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Optionnel</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Espagnol LV2</h3>
+                        <p class="text-gray-600 text-sm mb-4">Español - Gramática y vocabulario</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-orange-500 mr-2"></i>Gramática española</li>
+                            <li><i class="fas fa-check text-orange-500 mr-2"></i>Vocabulario temático</li>
+                            <li><i class="fas fa-check text-orange-500 mr-2"></i>Civilización hispánica</li>
+                        </ul>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span>Progression</span>
+                                <span class="font-semibold">30%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-orange-500 h-2 rounded-full" style="width: 30%"></div>
+                            </div>
+                        </div>
+                        <button onclick="openCourse('espagnol')" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Commencer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sciences Section -->
+        <section id="sciences" class="hidden fade-in space-y-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white flex items-center drop-shadow-md">
+                    <i class="fas fa-flask mr-3"></i>
+                    Espace Sciences
+                </h2>
+                <button onclick="showSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all backdrop-blur">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- SVT (Séries A, C, D) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-green-500">
+                    <div class="h-32 bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center relative">
+                        <i class="fas fa-leaf text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Séries A, C, D</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">SVT</h3>
+                        <p class="text-gray-600 text-sm mb-4">Sciences de la Vie et de la Terre - Programme BAC Togo</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Biologie cellulaire et génétique</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Anatomie et physiologie humaine</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Écologie et environnement</li>
+                            <li><i class="fas fa-check text-green-500 mr-2"></i>Géologie et astronomie</li>
+                        </ul>
+                        <button onclick="openCourse('svt')" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Explorer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Physique-Chimie (Séries C, D, TI) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-blue-500">
+                    <div class="h-32 bg-gradient-to-r from-blue-500 to-cyan-600 flex items-center justify-center relative">
+                        <i class="fas fa-atom text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Séries C, D, TI</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Physique-Chimie</h3>
+                        <p class="text-gray-600 text-sm mb-4">Sciences Physiques - Programme BAC Togo</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>Mécanique du point</li>
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>Électricité et électromagnétisme</li>
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>Chimie organique et minérale</li>
+                            <li><i class="fas fa-check text-blue-500 mr-2"></i>Optique et thermodynamique</li>
+                        </ul>
+                        <button onclick="openCourse('physique')" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Explorer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mathématiques (Séries C, D) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-indigo-500">
+                    <div class="h-32 bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center relative">
+                        <i class="fas fa-square-root-variable text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Séries C, D</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Mathématiques</h3>
+                        <p class="text-gray-600 text-sm mb-4">Algèbre, Analyse, Géométrie - Programme BAC Togo</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Analyse (Suites, fonctions, intégrales)</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Algèbre linéaire et polynômes</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Géométrie plane et dans l'espace</li>
+                            <li><i class="fas fa-check text-indigo-500 mr-2"></i>Probabilités et statistiques</li>
+                        </ul>
+                        <button onclick="openCourse('maths')" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Explorer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Technologie (Série TI) -->
+                <div class="glass-effect rounded-2xl overflow-hidden card-hover border-t-4 border-pink-500">
+                    <div class="h-32 bg-gradient-to-r from-pink-500 to-rose-600 flex items-center justify-center relative">
+                        <i class="fas fa-cogs text-6xl text-white/80"></i>
+                        <span class="absolute top-2 right-2 bg-white/20 text-white px-2 py-1 rounded text-xs">Série TI</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Technologie Industrielle</h3>
+                        <p class="text-gray-600 text-sm mb-4">Mécanique, Électricité, Génie Civil - BAC TI</p>
+                        <ul class="text-sm text-gray-600 mb-4 space-y-1">
+                            <li><i class="fas fa-check text-pink-500 mr-2"></i>Mécanique générale</li>
+                            <li><i class="fas fa-check text-pink-500 mr-2"></i>Électricité industrielle</li>
+                            <li><i class="fas fa-check text-pink-500 mr-2"></i>Dessin technique</li>
+                            <li><i class="fas fa-check text-pink-500 mr-2"></i>Technologie des matériaux</li>
+                        </ul>
+                        <button onclick="openCourse('techno')" class="w-full bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-lg transition-all font-semibold">
+                            Explorer
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Littérature Section -->
+        <section id="litterature" class="hidden fade-in space-y-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white flex items-center drop-shadow-md">
+                    <i class="fas fa-book mr-3"></i>
+                    Espace Littérature & Sciences Humaines
+                </h2>
+                <button onclick="showSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all backdrop-blur">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Français (Toutes séries) -->
+                <div class="glass-effect rounded-2xl p-6 card-hover border-l-4 border-purple-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold mb-1">Français</h3>
+                            <span class="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded">Toutes séries</span>
+                        </div>
+                        <i class="fas fa-feather-alt text-4xl text-purple-400"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Littérature, Grammaire, Méthodologie dissertation</p>
+                    <div class="space-y-2">
+                        <button onclick="openCourse('francais')" class="block w-full text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-book-open mr-2 text-purple-600"></i>Textes littéraires (XVIIe-XXe)</span>
+                            <i class="fas fa-chevron-right text-purple-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('francais')" class="block w-full text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-pen mr-2 text-purple-600"></i>Expression écrite (Dissertation)</span>
+                            <i class="fas fa-chevron-right text-purple-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('francais')" class="block w-full text-left px-4 py-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-comment-dots mr-2 text-purple-600"></i>Expression orale</span>
+                            <i class="fas fa-chevron-right text-purple-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Philosophie (Toutes séries) -->
+                <div class="glass-effect rounded-2xl p-6 card-hover border-l-4 border-indigo-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold mb-1">Philosophie</h3>
+                            <span class="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded">Toutes séries</span>
+                        </div>
+                        <i class="fas fa-lightbulb text-4xl text-indigo-400"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Dissertation philosophique, Notions fondamentales</p>
+                    <div class="space-y-2">
+                        <button onclick="openCourse('philo')" class="block w-full text-left px-4 py-3 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-brain mr-2 text-indigo-600"></i>La liberté et la conscience</span>
+                            <i class="fas fa-chevron-right text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('philo')" class="block w-full text-left px-4 py-3 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-balance-scale mr-2 text-indigo-600"></i>La justice et l'État</span>
+                            <i class="fas fa-chevron-right text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('philo')" class="block w-full text-left px-4 py-3 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-infinity mr-2 text-indigo-600"></i>Dieu et la religion</span>
+                            <i class="fas fa-chevron-right text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Histoire-Géographie (Toutes séries) -->
+                <div class="glass-effect rounded-2xl p-6 card-hover border-l-4 border-amber-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold mb-1">Histoire-Géographie</h3>
+                            <span class="text-xs bg-amber-100 text-amber-600 px-2 py-1 rounded">Toutes séries</span>
+                        </div>
+                        <i class="fas fa-globe-africa text-4xl text-amber-400"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Histoire du Togo et du monde, Géographie physique et humaine</p>
+                    <div class="space-y-2">
+                        <button onclick="openCourse('hg')" class="block w-full text-left px-4 py-3 bg-amber-50 hover:bg-amber-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-landmark mr-2 text-amber-600"></i>Histoire du Togo (colonial/post-colonial)</span>
+                            <i class="fas fa-chevron-right text-amber-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('hg')" class="block w-full text-left px-4 py-3 bg-amber-50 hover:bg-amber-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-map mr-2 text-amber-600"></i>Géographie du Togo et de l'Afrique</span>
+                            <i class="fas fa-chevron-right text-amber-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('hg')" class="block w-full text-left px-4 py-3 bg-amber-50 hover:bg-amber-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-globe mr-2 text-amber-600"></i>Géopolitique mondiale</span>
+                            <i class="fas fa-chevron-right text-amber-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ECM (Toutes séries) -->
+                <div class="glass-effect rounded-2xl p-6 card-hover border-l-4 border-teal-500">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold mb-1">Education Civique et Morale</h3>
+                            <span class="text-xs bg-teal-100 text-teal-600 px-2 py-1 rounded">Toutes séries</span>
+                        </div>
+                        <i class="fas fa-landmark text-4xl text-teal-400"></i>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">Citoyenneté, Droits et Devoirs, Institutions togolaises</p>
+                    <div class="space-y-2">
+                        <button onclick="openCourse('ecm')" class="block w-full text-left px-4 py-3 bg-teal-50 hover:bg-teal-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-users mr-2 text-teal-600"></i>Citoyenneté et démocratie</span>
+                            <i class="fas fa-chevron-right text-teal-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('ecm')" class="block w-full text-left px-4 py-3 bg-teal-50 hover:bg-teal-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-balance-scale-right mr-2 text-teal-600"></i>Institutions politiques du Togo</span>
+                            <i class="fas fa-chevron-right text-teal-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                        <button onclick="openCourse('ecm')" class="block w-full text-left px-4 py-3 bg-teal-50 hover:bg-teal-100 rounded-lg transition-all flex items-center justify-between group">
+                            <span><i class="fas fa-hand-holding-heart mr-2 text-teal-600"></i>Éthique et morale civique</span>
+                            <i class="fas fa-chevron-right text-teal-400 group-hover:translate-x-1 transition-transform"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Section -->
+        <section id="community" class="hidden fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white flex items-center drop-shadow-md">
+                    <i class="fas fa-users mr-3"></i>
+                    Espace d'Interaction Étudiants
+                </h2>
+                <button onclick="showSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all backdrop-blur">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+                <!-- Chat Area -->
+                <div class="lg:col-span-2 glass-effect rounded-2xl flex flex-col">
+                    <div class="p-4 border-b flex justify-between items-center bg-gradient-to-r from-green-50 to-yellow-50 rounded-t-2xl">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-yellow-500 rounded-full flex items-center justify-center text-white">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold">Discussion Générale BAC</h3>
+                                <p class="text-xs text-gray-500">245 étudiants togolais en ligne</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="p-2 hover:bg-white rounded-lg transition-all" title="Joindre un fichier">
+                                <i class="fas fa-paperclip text-gray-600"></i>
+                            </button>
+                            <button class="p-2 hover:bg-white rounded-lg transition-all" title="Appel vocal">
+                                <i class="fas fa-phone text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
+                        <div class="flex justify-center">
+                            <span class="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">Aujourd'hui</span>
+                        </div>
+                        
+                        <div class="chat-bubble chat-received">
+                            <p class="font-semibold text-sm mb-1 text-green-700">Amévi K. (Série C)</p>
+                            <p>Salut tout le monde ! Quelqu'un a des anciens sujets de Maths du BAC 2023 ? 📚</p>
+                            <span class="text-xs opacity-70">08:15</span>
+                        </div>
+                        
+                        <div class="chat-bubble chat-received">
+                            <p class="font-semibold text-sm mb-1 text-blue-700">Kossi M. (Série D)</p>
+                            <p>Oui, je peux t'envoyer ça. Il y avait un exercice sur les suites arithmétiques très difficile !</p>
+                            <span class="text-xs opacity-70">08:17</span>
+                        </div>
+                        
+                        <div class="chat-bubble chat-sent">
+                            <p>Moi aussi je cherche des sujets de Philo. Quelqu'un sait si "La liberté" risque de tomber cette année ? 🤔</p>
+                            <span class="text-xs opacity-70">08:20</span>
+                        </div>
+                        
+                        <div class="chat-bubble chat-received">
+                            <p class="font-semibold text-sm mb-1 text-purple-700">Abla D. (Série A)</p>
+                            <p>Pour la philo, révisez bien la conscience et l'histoire aussi. Bon courage ! 💪</p>
+                            <span class="text-xs opacity-70">08:22</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t bg-gray-50 rounded-b-2xl">
+                        <form onsubmit="sendMessage(event)" class="flex space-x-2">
+                            <input type="text" id="message-input" placeholder="Écrivez votre message..." 
+                                class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                            <button type="submit" class="bg-gradient-to-r from-green-600 to-yellow-500 hover:from-green-700 hover:to-yellow-600 text-white px-6 py-2 rounded-lg transition-all">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-4">
+                    <!-- Study Groups -->
+                    <div class="glass-effect rounded-2xl p-4">
+                        <h3 class="font-bold mb-3 flex items-center text-green-800">
+                            <i class="fas fa-user-group mr-2"></i>
+                            Groupes d'étude par série
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between p-2 hover:bg-green-50 rounded-lg cursor-pointer transition-all">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs font-bold">A</div>
+                                    <div>
+                                        <span class="text-sm font-medium">Série A - Littéraires</span>
+                                        <p class="text-xs text-gray-500">45 membres</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">12 actifs</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-yellow-50 rounded-lg cursor-pointer transition-all">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-xs font-bold">C</div>
+                                    <div>
+                                        <span class="text-sm font-medium">Série C - Maths</span>
+                                        <p class="text-xs text-gray-500">38 membres</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">8 actifs</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-green-50 rounded-lg cursor-pointer transition-all">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-xs font-bold">D</div>
+                                    <div>
+                                        <span class="text-sm font-medium">Série D - Sciences</span>
+                                        <p class="text-xs text-gray-500">52 membres</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">15 actifs</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 hover:bg-pink-50 rounded-lg cursor-pointer transition-all">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 text-xs font-bold">TI</div>
+                                    <div>
+                                        <span class="text-sm font-medium">Série TI - Techniques</span>
+                                        <p class="text-xs text-gray-500">23 membres</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">5 actifs</span>
+                            </div>
+                        </div>
+                        <button class="w-full mt-3 border-2 border-dashed border-gray-300 hover:border-green-500 text-gray-500 hover:text-green-600 py-2 rounded-lg transition-all text-sm font-medium">
+                            <i class="fas fa-plus mr-1"></i> Créer un groupe
+                        </button>
+                    </div>
+
+                    <!-- Online Users -->
+                    <div class="glass-effect rounded-2xl p-4">
+                        <h3 class="font-bold mb-3 flex items-center">
+                            <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                            En ligne maintenant
+                        </h3>
+                        <div class="space-y-2 max-h-48 overflow-y-auto">
+                            <div class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                                <div class="relative">
+                                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-xs">AK</div>
+                                    <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="text-sm font-medium">Amévi K.</span>
+                                    <span class="text-xs text-gray-500 block">Série C • Lycée de Tokoin</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                                <div class="relative">
+                                    <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white text-xs">KM</div>
+                                    <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="text-sm font-medium">Kossi M.</span>
+                                    <span class="text-xs text-gray-500 block">Série D • Lycée d'Adawlato</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded">
+                                <div class="relative">
+                                    <div class="w-8 h-8 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white text-xs">AD</div>
+                                    <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-yellow-500 border-2 border-white rounded-full"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="text-sm font-medium">Abla D.</span>
+                                    <span class="text-xs text-gray-500 block">Série A • Lycée de Kégué</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BAC Countdown -->
+                    <div class="glass-effect rounded-2xl p-4 bg-gradient-to-br from-green-50 to-yellow-50 border border-green-200">
+                        <h3 class="font-bold mb-2 text-green-800 flex items-center">
+                            <i class="fas fa-hourglass-half mr-2"></i>
+                            Compte à rebours BAC
+                        </h3>
+                        <div class="text-center py-2">
+                            <div class="text-3xl font-bold text-green-700 mb-1">87</div>
+                            <div class="text-sm text-gray-600">jours avant le début des épreuves</div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-gradient-to-r from-green-500 to-yellow-500 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section id="progress" class="hidden fade-in space-y-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-3xl font-bold text-white flex items-center drop-shadow-md">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Courbe de Performance
+                </h2>
+                <button onclick="showSection('dashboard')" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition-all backdrop-blur">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Chart -->
+                <div class="lg:col-span-2 glass-effect rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">Évolution des moyennes trimestrielles</h3>
+                        <select class="bg-gray-50 border rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateChart(this.value)">
+                            <option value="trim1">1er Trimestre</option>
+                            <option value="trim2">2ème Trimestre</option>
+                            <option value="trim3">3ème Trimestre</option>
+                            <option value="annuel">Annuel</option>
+                        </select>
+                    </div>
+                    <canvas id="performanceChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Stats Details -->
+                <div class="space-y-4">
+                    <div class="glass-effect rounded-2xl p-6">
+                        <h3 class="font-bold mb-4 text-gray-800">Répartition par matière</h3>
+                        <canvas id="subjectChart" width="200" height="200"></canvas>
+                    </div>
+
+                    <div class="glass-effect rounded-2xl p-6">
+                        <h3 class="font-bold mb-4 text-gray-800">Objectifs BAC</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Moyenne générale visée</span>
+                                    <span class="font-semibold text-green-600">16/20</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1">Actuel: 14.5/20</p>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Quiz complétés</span>
+                                    <span class="font-semibold text-blue-600">12/20</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Cours terminés</span>
+                                    <span class="font-semibold text-purple-600">18/25</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-purple-600 h-2 rounded-full" style="width: 72%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Stats Table -->
+            <div class="glass-effect rounded-2xl p-6 overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Détail des moyennes par matière - Série <span id="current-series">D</span></h3>
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b-2 border-gray-200">
+                            <th class="pb-3 text-gray-600">Matière</th>
+                            <th class="pb-3 text-gray-600">Interro 1</th>
+                            <th class="pb-3 text-gray-600">Interro 2</th>
+                            <th class="pb-3 text-gray-600">Devoir</th>
+                            <th class="pb-3 text-gray-600">Moyenne</th>
+                            <th class="pb-3 text-gray-600">Progression</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm" id="grades-table">
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 flex items-center font-medium"><i class="fas fa-language mr-2 text-red-500"></i> Anglais</td>
+                            <td>15</td>
+                            <td>16</td>
+                            <td>17</td>
+                            <td class="font-bold text-green-600">16/20</td>
+                            <td><span class="text-green-500"><i class="fas fa-arrow-up"></i> +2 pts</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 flex items-center font-medium"><i class="fas fa-square-root-variable mr-2 text-indigo-500"></i> Mathématiques</td>
+                            <td>11</td>
+                            <td>13</td>
+                            <td>14</td>
+                            <td class="font-bold text-yellow-600">12.6/20</td>
+                            <td><span class="text-green-500"><i class="fas fa-arrow-up"></i> +3 pts</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 flex items-center font-medium"><i class="fas fa-lightbulb mr-2 text-indigo-500"></i> Philosophie</td>
+                            <td>14</td>
+                            <td>15</td>
+                            <td>16</td>
+                            <td class="font-bold text-green-600">15/20</td>
+                            <td><span class="text-green-500"><i class="fas fa-arrow-up"></i> +1 pt</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 flex items-center font-medium"><i class="fas fa-flask mr-2 text-blue-500"></i> SVT</td>
+                            <td>13</td>
+                            <td>14</td>
+                            <td>15</td>
+                            <td class="font-bold text-green-600">14/20</td>
+                            <td><span class="text-green-500"><i class="fas fa-arrow-up"></i> +1 pt</span></td>
+                        </tr>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 flex items-center font-medium"><i class="fas fa-atom mr-2 text-blue-500"></i> Physique-Chimie</td>
+                            <td>10</td>
+                            <td>12</td>
+                            <td>13</td>
+                            <td class="font-bold text-yellow-600">11.6/20</td>
+                            <td><span class="text-green-500"><i class="fas fa-arrow-up"></i> +2 pts</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Course Content Modal -->
+    <div id="course-modal" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-6 border
